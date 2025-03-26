@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Create a sandboxed iframe to display the content
             const iframe = document.createElement('iframe');
-            iframe.sandbox = 'allow-same-origin allow-scripts';
+            iframe.sandbox = 'allow-same-origin';
             contentDisplay.innerHTML = '';
             contentDisplay.appendChild(iframe);
             
@@ -55,16 +55,28 @@ document.addEventListener('DOMContentLoaded', () => {
             iframeDocument.write(data.content);
             iframeDocument.close();
             
+            // Add event listener to handle link clicks inside the iframe
+            iframeDocument.addEventListener('click', (event) => {
+                if (event.target.tagName === 'A') {
+                    event.preventDefault();
+                    const href = event.target.getAttribute('href');
+                    if (href && href.startsWith('/fetch')) {
+                        // Extract the URL from the href
+                        const urlMatch = href.match(/\/fetch\?url=(.+)/);
+                        if (urlMatch) {
+                            const encodedUrl = urlMatch[1];
+                            const decodedUrl = decodeURIComponent(encodedUrl);
+                            // Update the URL input and trigger a new fetch
+                            urlInput.value = decodedUrl;
+                            urlForm.dispatchEvent(new Event('submit'));
+                        }
+                    }
+                }
+            });
+            
             // Adjust iframe height to match content
             iframe.onload = function() {
                 iframe.style.height = iframeDocument.body.scrollHeight + 'px';
-                
-                // Make sure links open in a new tab
-                const links = iframeDocument.querySelectorAll('a');
-                links.forEach(link => {
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                });
             };
             
             // Show result container
