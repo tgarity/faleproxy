@@ -16,6 +16,19 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Helper function for Yale to Fale replacement that only affects nodes containing Yale
+function replaceYaleWithFale(text) {
+  // Only replace if Yale is actually present (case insensitive check)
+  if (text.match(/yale/i)) {
+    // Use regex with global and case insensitive flags
+    return text
+      .replace(/YALE/g, 'FALE')
+      .replace(/Yale/g, 'Fale')
+      .replace(/yale/g, 'fale');
+  }
+  return text;
+}
+
 // Handle GET requests for proxied URLs
 app.get('/fetch', async (req, res) => {
   const { url } = req.query;
@@ -34,15 +47,18 @@ app.get('/fetch', async (req, res) => {
       return this.nodeType === 3; // Text nodes only
     }).each(function() {
       const text = $(this).text();
-      const newText = text.replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
+      const newText = replaceYaleWithFale(text);
       if (text !== newText) {
         $(this).replaceWith(newText);
       }
     });
 
     // Process title separately
-    const title = $('title').text().replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
-    $('title').text(title);
+    const title = $('title').text();
+    const newTitle = replaceYaleWithFale(title);
+    if (title !== newTitle) {
+      $('title').text(newTitle);
+    }
 
     // Update all links to route through our proxy
     $('a').each(function() {
@@ -95,15 +111,18 @@ app.post('/fetch', async (req, res) => {
       return this.nodeType === 3; // Text nodes only
     }).each(function() {
       const text = $(this).text();
-      const newText = text.replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
+      const newText = replaceYaleWithFale(text);
       if (text !== newText) {
         $(this).replaceWith(newText);
       }
     });
     
     // Process title separately
-    const title = $('title').text().replace(/Yale/g, 'Fale').replace(/yale/g, 'fale');
-    $('title').text(title);
+    const title = $('title').text();
+    const newTitle = replaceYaleWithFale(title);
+    if (title !== newTitle) {
+      $('title').text(newTitle);
+    }
 
     // Update all links to route through our proxy
     $('a').each(function() {
@@ -131,7 +150,7 @@ app.post('/fetch', async (req, res) => {
     return res.json({ 
       success: true, 
       content: $.html(),
-      title: title,
+      title: newTitle,
       originalUrl: url
     });
   } catch (error) {
