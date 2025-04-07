@@ -5,11 +5,9 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-    types: [opened, synchronize, reopened]
 
 jobs:
   test:
-    if: github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'skip ci') || github.event_name == 'push' && github.event.pull_request == null
     runs-on: ubuntu-latest
 
     strategy:
@@ -34,7 +32,7 @@ jobs:
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report
+        name: coverage-report-${{ matrix.node-version }}
         path: coverage/
         
   deploy:
