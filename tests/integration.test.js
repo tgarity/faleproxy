@@ -54,12 +54,19 @@ describe('Integration Tests', () => {
   }, 10000); // Increase timeout for this test
 
   test('Should handle invalid URLs', async () => {
+    // Temporarily silence console.error for this test
+    const originalError = console.error;
+    console.error = jest.fn();
+
     const response = await request(app)
       .post('/fetch')
       .send({ url: 'not-a-valid-url' })
       .expect(500);
     
     expect(response.body.error).toContain('Failed to fetch content');
+
+    // Restore console.error
+    console.error = originalError;
   });
 
   test('Should handle missing URL parameter', async () => {
