@@ -161,7 +161,7 @@ app.post('/fetch', async (req, res) => {
   } catch (error) {
     console.error('Error fetching URL:', error.message);
     return res.status(500).json({ 
-      "error": `Failed to fetch content: ${error.message}` 
+      error: `Failed to fetch content: ${error.message}` 
     });
   }
 });
