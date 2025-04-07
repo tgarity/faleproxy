@@ -18,15 +18,20 @@ app.get('/', (req, res) => {
 
 // Helper function for Yale to Fale replacement that only affects nodes containing Yale
 function replaceYaleWithFale(text) {
-  // Only replace if Yale is actually present (case insensitive check)
-  if (text.match(/yale/i)) {
-    // Use regex with global and case insensitive flags
-    return text
-      .replace(/YALE/g, 'FALE')
-      .replace(/Yale/g, 'Fale')
-      .replace(/yale/g, 'fale');
+  // First check if the text contains Yale as a standalone word
+  const hasStandaloneYale = /\b(YALE|Yale|yale)\b/.test(text);
+  
+  // If it doesn't have a standalone Yale, return the original text
+  if (!hasStandaloneYale) {
+    return text;
   }
-  return text;
+  
+  // Replace each instance of Yale with Fale while preserving case
+  return text.replace(/\b(YALE|Yale|yale)\b/g, function(match) {
+    if (match === 'YALE') return 'FALE';
+    if (match === 'yale') return 'fale';
+    return 'Fale';
+  });
 }
 
 // Handle GET requests for proxied URLs
@@ -116,7 +121,7 @@ app.post('/fetch', async (req, res) => {
         $(this).replaceWith(newText);
       }
     });
-    
+
     // Process title separately
     const title = $('title').text();
     const newTitle = replaceYaleWithFale(title);
@@ -146,9 +151,9 @@ app.post('/fetch', async (req, res) => {
         $(this).attr('href', `/fetch?url=${encodedUrl}`);
       }
     });
-    
+
     return res.json({ 
-      success: true, 
+      success: true,
       content: $.html(),
       title: newTitle,
       originalUrl: url
@@ -156,12 +161,16 @@ app.post('/fetch', async (req, res) => {
   } catch (error) {
     console.error('Error fetching URL:', error.message);
     return res.status(500).json({ 
-      error: `Failed to fetch content: ${error.message}` 
+      "error": `Failed to fetch content: ${error.message}` 
     });
   }
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Faleproxy server running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
